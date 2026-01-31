@@ -1,0 +1,12 @@
+{
+  "placeholder": "Begin typing your vision...",
+  "btn_generate": "Generate",
+  "btn_loading": "Synthesizing...",
+  "bridge_title": "Bridge Sequence",
+  "step_1_label": "Language Detection",
+  "step_1_sub": "Analyzing syntax & cultural nuance",
+  "step_2_label": "AI Reasoning",
+  "step_2_sub": "Expanding conceptual nodes",
+  "step_3_label": "Prompt Finalization",
+  "step_3_sub": "Synthesizing stylistic parameters"
+}

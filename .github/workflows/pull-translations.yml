@@ -1,0 +1,42 @@
+name: Pull Translations from Lingo.dev
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Optional: Run daily at 00:00 UTC
+    # Uncomment below for hackathon if you want automatic daily pulls
+    # - cron: '0 0 * * *'
+
+jobs:
+  pull-locales:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Pull translations from Lingo.dev
+        env:
+          LINGO_DEV_TOKEN: ${{ secrets.LINGO_DEV_TOKEN }}
+        run: npm run pull:locales
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: 'chore: update translations from lingo.dev'
+          title: 'chore: translations sync from lingo.dev'
+          body: |
+            Automated translation pull from lingo.dev
+            
+            - German (de)
+            - Afrikaans (af)
+            - Spanish (es)
+          branch: 'chore/lingo-dev-translations'
+          delete-branch: true

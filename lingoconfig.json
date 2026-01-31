@@ -1,0 +1,19 @@
+{
+  "project": "prompt-glot",
+  "lingoConfig": {
+    "source": "src/locales/en",
+    "output": "src/locales",
+    "format": "i18next",
+    "languages": ["en", "de", "af", "es"],
+    "namespaces": ["common"],
+    "include": "src/locales/**/*.json"
+  },
+  "promptOps": {
+    "source": "src/prompts/en",
+    "output": "src/prompts",
+    "languages": ["en", "de", "af", "es"],
+    "format": "json",
+    "versionControl": "gitops",
+    "note": "AI Persona prompts managed via GitOps (PromptOps). Pull translations via npm run pull:locales"
+  }
+}
