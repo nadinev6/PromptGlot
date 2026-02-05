@@ -1,0 +1,24 @@
+{
+  "defaultLanguage": "en",
+  "supportedLanguages": ["en", "af"],
+  "fallbackLanguage": "en",
+  "provider": {
+    "id": "openai",
+    "model": "gpt-4o",
+    "prompt": "You are a visual intent parser for PromptGLot. Your job is to translate Afrikaans commands into English image-editing instructions. SPECIAL RULE: Afrikaans uses double negation (e.g., 'nie...nie'). If you see this, the user wants to REMOVE the object mentioned. Output format: { \"action\": \"REMOVE|ADD|CHANGE\", \"subject\": \"item_name\", \"refined_prompt\": \"English description\" }"
+  },
+  "logic_rules": [
+    {
+      "pattern": ".*(maar|but).*",
+      "rule_id": "contrastive_negation_handler",
+      "instruction": "Split the sentence at the conjunction. For each part, determine if the intent is ADD, REMOVE, or RETAIN. Combine into a single English prompt that describes the final desired state of the image."
+    }
+  ],
+  "buckets": [
+    {
+      "type": "json",
+      "include": ["src/locales/**/*.json"],
+      "exclude": ["node_modules/**"]
+    }
+  ]
+}

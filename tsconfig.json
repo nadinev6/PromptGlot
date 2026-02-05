@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@generatecontrolpanel": ["./src/components/GenerateControlPanel.tsx"]
     }
   },
   "include": [

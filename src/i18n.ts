@@ -8,14 +8,7 @@ const resources = {
   en: {
     common: enCommon,
   },
-  // Add other languages as they become available
-  de: {
-    common: enCommon, // Fallback to English for now
-  },
   af: {
-    common: enCommon, // Fallback to English for now
-  },
-  es: {
     common: enCommon, // Fallback to English for now
   },
 };
