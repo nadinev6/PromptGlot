@@ -1,57 +1,95 @@
-// Lingo.dev SDK client wrapper
-// Note: This is a stub implementation until @lingo-dev/sdk is installed
-
+import { LingoDotDevEngine } from 'lingo.dev/sdk'
+import OpenAI from 'openai'
 import type { LingoTranslateOptions, LingoTranslateResult } from './types'
 
 export class LingoClient {
-  private apiKey: string
+  private engine: LingoDotDevEngine
+  private openai: OpenAI
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey
+  constructor(lingoApiKey: string, openaiApiKey: string) {
+    this.engine = new LingoDotDevEngine({ apiKey: lingoApiKey })
+    this.openai = new OpenAI({ apiKey: openaiApiKey })
   }
 
   async translateWithIntent(
     text: string,
     options: LingoTranslateOptions
   ): Promise<LingoTranslateResult> {
-    // TODO: Replace with actual Lingo.dev SDK implementation
-    // For now, this is a stub that will be replaced when the SDK is installed
-    
-    // Simulate API call
-    console.log('Lingo.dev translation:', { text, options })
-    
-    // Basic double negation detection for Afrikaans
-    const hasDoubleNegation = text.includes('nie') && 
-                              text.lastIndexOf('nie') !== text.indexOf('nie')
-    
-    // Mock translation result
+    const translatedText = await this.engine.localizeText(text, {
+      sourceLocale: options.sourceLocale,
+      targetLocale: options.targetLocale,
+    })
+
+    const intentResult = await this.parseIntent(text, translatedText)
+
     return {
-      translatedText: text, // In production, this would be the actual translation
+      translatedText: intentResult.refinedPrompt || translatedText,
       metadata: {
-        action: hasDoubleNegation ? 'REMOVE' : undefined,
-        subject: undefined,
+        action: intentResult.action,
+        subject: intentResult.subject,
         resolveDoubleNegation: options.resolveDoubleNegation,
-        outputFormat: 'json'
+        outputFormat: 'json',
+      },
+    }
+  }
+
+  private async parseIntent(
+    originalAfrikaans: string,
+    englishTranslation: string
+  ): Promise<{
+    action?: 'REMOVE' | 'ADD' | 'CHANGE'
+    subject?: string
+    refinedPrompt?: string
+  }> {
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-4o',
+        temperature: 0.1,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content: `You are a visual intent parser for PromptGlot. Your job is to analyze Afrikaans commands and their English translations to determine image-editing intent. SPECIAL RULE: Afrikaans uses double negation (e.g., 'nie...nie'). If you see this pattern, the user wants to REMOVE the object mentioned. Output JSON: { "action": "REMOVE"|"ADD"|"CHANGE", "subject": "item_name", "refined_prompt": "English description of desired final image state" }`,
+          },
+          {
+            role: 'user',
+            content: `Afrikaans: "${originalAfrikaans}"\nEnglish translation: "${englishTranslation}"\n\nParse the visual editing intent.`,
+          },
+        ],
+      })
+
+      const content = response.choices[0]?.message?.content
+      if (!content) return {}
+
+      const parsed = JSON.parse(content)
+      return {
+        action: parsed.action,
+        subject: parsed.subject,
+        refinedPrompt: parsed.refined_prompt,
       }
+    } catch {
+      return {}
     }
   }
 }
 
-// Singleton instance
 let lingoClient: LingoClient | null = null
 
 export function getLingoClient(): LingoClient {
   if (!lingoClient) {
-    const apiKey = process.env.LINGODOTDEV_API_KEY
-    if (!apiKey) {
+    const lingoKey = process.env.LINGODOTDEV_API_KEY
+    if (!lingoKey) {
       throw new Error('LINGODOTDEV_API_KEY environment variable is required')
     }
-    lingoClient = new LingoClient(apiKey)
+    const openaiKey = process.env.OPENAI_API_KEY
+    if (!openaiKey) {
+      throw new Error('OPENAI_API_KEY environment variable is required')
+    }
+    lingoClient = new LingoClient(lingoKey, openaiKey)
   }
   return lingoClient
 }
 
-// Reset function for testing
 export function resetLingoClient(): void {
   lingoClient = null
 }

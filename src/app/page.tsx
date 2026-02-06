@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { inpaintImage } from '@/lib/api/client'
+import { inpaintImage, buildBase64DataUrl } from '@/lib/api/client'
 
 export default function Home() {
   const [image, setImage] = useState<File | null>(null)
@@ -31,7 +31,7 @@ export default function Home() {
     setLoading(true)
     try {
       const response = await inpaintImage(image, prompt, { language: 'af' })
-      setResult(response.imageUrl)
+      setResult(buildBase64DataUrl(response.imageBase64, response.contentType))
     } catch (error) {
       console.error('Inpainting failed:', error)
     } finally {

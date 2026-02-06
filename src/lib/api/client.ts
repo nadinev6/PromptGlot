@@ -1,16 +1,5 @@
-// Client-side API utilities for calling backend routes
-
 import type { TranslationResult } from '@/lib/lingo/types'
-import type { InpaintResponse } from '@/types/image'
 
-/**
- * Translates Afrikaans text to English
- * 
- * @param text - Text to translate
- * @param sourceLocale - Source language (default: 'af')
- * @param targetLocale - Target language (default: 'en-US')
- * @returns Translation result
- */
 export async function translateText(
   text: string,
   sourceLocale: string = 'af',
@@ -18,9 +7,7 @@ export async function translateText(
 ): Promise<TranslationResult> {
   const response = await fetch('/api/translate', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text, sourceLocale, targetLocale }),
   })
 
@@ -33,14 +20,6 @@ export async function translateText(
   return data.translation
 }
 
-/**
- * Batch translates multiple texts
- * 
- * @param texts - Array of texts to translate
- * @param sourceLocale - Source language (default: 'af')
- * @param targetLocale - Target language (default: 'en-US')
- * @returns Array of translation results
- */
 export async function batchTranslateTexts(
   texts: string[],
   sourceLocale: string = 'af',
@@ -48,9 +27,7 @@ export async function batchTranslateTexts(
 ): Promise<TranslationResult[]> {
   const response = await fetch('/api/translate', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ texts, sourceLocale, targetLocale }),
   })
 
@@ -63,14 +40,19 @@ export async function batchTranslateTexts(
   return data.translations
 }
 
-/**
- * Generates an inpainted image
- * 
- * @param image - Source image file
- * @param prompt - Editing prompt
- * @param options - Additional options
- * @returns Inpainting result with image URL
- */
+export interface InpaintResult {
+  success: boolean
+  imageBase64: string
+  contentType: string
+  translatedPrompt?: string
+  originalPrompt?: string
+  metadata?: {
+    action?: string
+    subject?: string
+    hasDoubleNegation?: boolean
+  }
+}
+
 export async function inpaintImage(
   image: File,
   prompt: string,
@@ -79,27 +61,19 @@ export async function inpaintImage(
     mask?: File
     strength?: number
   }
-): Promise<InpaintResponse & { 
-  translatedPrompt?: string
-  originalPrompt?: string
-  metadata?: {
-    action?: string
-    subject?: string
-    hasDoubleNegation?: boolean
-  }
-}> {
+): Promise<InpaintResult> {
   const formData = new FormData()
   formData.append('image', image)
   formData.append('prompt', prompt)
-  
+
   if (options?.language) {
     formData.append('language', options.language)
   }
-  
+
   if (options?.mask) {
     formData.append('mask', options.mask)
   }
-  
+
   if (options?.strength !== undefined) {
     formData.append('strength', options.strength.toString())
   }
@@ -118,11 +92,10 @@ export async function inpaintImage(
   return data
 }
 
-/**
- * Checks API health status
- * 
- * @returns Health status
- */
+export function buildBase64DataUrl(base64: string, contentType: string): string {
+  return `data:${contentType};base64,${base64}`
+}
+
 export async function checkHealth(): Promise<{
   status: string
   timestamp: string

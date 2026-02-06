@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, ChangeEvent } from 'react'
-import { inpaintImage } from '@/lib/api/client'
+import { inpaintImage, buildBase64DataUrl } from '@/lib/api/client'
 import { PromptInput } from './PromptInput'
 
 interface ImageEditorProps {
@@ -53,12 +53,12 @@ export function ImageEditor({ className = '' }: ImageEditorProps) {
         strength: 0.8
       })
       
-      setResult(response.imageUrl)
+      setResult(buildBase64DataUrl(response.imageBase64, response.contentType))
       setTranslationInfo({
         original: response.originalPrompt || prompt,
         translated: response.translatedPrompt || prompt,
         action: response.metadata?.action,
-        subject: response.metadata?.subject
+        subject: response.metadata?.subject,
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Inpainting failed')

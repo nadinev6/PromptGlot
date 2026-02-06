@@ -5,29 +5,10 @@ import { InpaintingError } from '@/types/errors'
 import { validateLanguageCode, sanitizeInput } from '@/lib/utils/validation'
 import type { InpaintRequest } from '@/types/image'
 
-/**
- * POST /api/inpaint
- * Generates an inpainted image using SDXL
- * 
- * Request (multipart/form-data):
- * - image: File (required) - Source image
- * - prompt: string (required) - Editing prompt
- * - language: string (optional, default: 'af') - Prompt language
- * - mask: File (optional) - Mask image
- * - strength: number (optional, 0-1) - Inpainting strength
- * 
- * Response:
- * - success: boolean
- * - imageUrl: string - Generated image URL
- * - translatedPrompt: string - English prompt used
- * - originalPrompt: string - Original prompt
- * - error: string (if failed)
- */
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    
-    // Extract form data
+
     const image = formData.get('image') as File | null
     const prompt = formData.get('prompt') as string | null
     const language = (formData.get('language') as string) || 'af'
@@ -35,7 +16,6 @@ export async function POST(request: NextRequest) {
     const strengthStr = formData.get('strength') as string | null
     const strength = strengthStr ? parseFloat(strengthStr) : undefined
 
-    // Validate required fields
     if (!image) {
       return NextResponse.json(
         { success: false, error: 'Image is required' },
@@ -50,52 +30,48 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate language
     if (!validateLanguageCode(language, ['en', 'af'])) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: `Invalid language: ${language}. Supported: en, af` 
-        },
+        { success: false, error: `Invalid language: ${language}. Supported: en, af` },
         { status: 400 }
       )
     }
 
-    // Sanitize prompt
     const sanitizedPrompt = sanitizeInput(prompt)
     const originalPrompt = sanitizedPrompt
 
-    // Translate Afrikaans prompt to English if needed
     let processedPrompt = sanitizedPrompt
     let translationResult = null
+    let negativePrompt: string | undefined
+    let action: 'REMOVE' | 'ADD' | 'CHANGE' | undefined
+    let subject: string | undefined
 
     if (language === 'af') {
       try {
         translationResult = await translateAfrikaansPrompt(sanitizedPrompt)
         processedPrompt = translationResult.translated
-        
-        console.log('Translation:', {
-          original: originalPrompt,
-          translated: processedPrompt,
-          action: translationResult.action,
-          hasDoubleNegation: translationResult.metadata.hasDoubleNegation
-        })
+        action = translationResult.action
+        subject = translationResult.subject
+
+        if (action === 'REMOVE' && subject) {
+          negativePrompt = subject
+        }
       } catch (error) {
         console.error('Translation failed, using original prompt:', error)
-        // Continue with original prompt if translation fails
       }
     }
 
-    // Create inpaint request
     const inpaintRequest: InpaintRequest = {
       image,
       prompt: processedPrompt,
       language: language as 'en' | 'af',
       mask: mask || undefined,
-      strength
+      strength,
+      negativePrompt,
+      action,
+      subject,
     }
 
-    // Validate request
     try {
       validateInpaintRequest(inpaintRequest)
     } catch (error) {
@@ -108,7 +84,6 @@ export async function POST(request: NextRequest) {
       throw error
     }
 
-    // Generate inpainting
     const result = await generateInpainting(inpaintRequest)
 
     if (!result.success) {
@@ -120,50 +95,42 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      imageUrl: result.imageUrl,
+      imageBase64: result.imageBase64,
+      contentType: result.contentType,
       translatedPrompt: processedPrompt,
-      originalPrompt: originalPrompt,
+      originalPrompt,
       metadata: translationResult ? {
         action: translationResult.action,
         subject: translationResult.subject,
-        hasDoubleNegation: translationResult.metadata.hasDoubleNegation
-      } : undefined
+        hasDoubleNegation: translationResult.metadata.hasDoubleNegation,
+      } : undefined,
     })
-
   } catch (error) {
     console.error('Inpainting error:', error)
-    
+
     if (error instanceof InpaintingError) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: error.message,
-          code: error.code
-        },
+        { success: false, error: error.message, code: error.code },
         { status: 500 }
       )
     }
 
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: error instanceof Error ? error.message : 'Inpainting failed',
-        code: 'INTERNAL_ERROR'
+        code: 'INTERNAL_ERROR',
       },
       { status: 500 }
     )
   }
 }
 
-/**
- * GET /api/inpaint
- * Returns API information
- */
 export async function GET() {
   return NextResponse.json({
     name: 'Inpainting API',
     version: '1.0.0',
-    description: 'SDXL-powered image inpainting with Afrikaans language support',
+    description: 'Stability AI-powered image inpainting with Afrikaans language support via Lingo.dev',
     supportedLanguages: ['en', 'af'],
     endpoints: {
       POST: {
@@ -174,16 +141,19 @@ export async function GET() {
           prompt: 'string - Editing prompt (required)',
           language: 'string - Prompt language (optional, default: af)',
           mask: 'File - Mask image (optional)',
-          strength: 'number - Inpainting strength 0-1 (optional, default: 0.8)'
+          strength: 'number - Inpainting strength 0-1 (optional, default: 0.8)',
         },
-        supportedImageTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-      }
+        supportedImageTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+      },
     },
     features: [
-      'Afrikaans to English translation',
-      'Double negation handling (nie...nie)',
+      'Afrikaans to English translation via Lingo.dev SDK',
+      'Double negation handling (nie...nie) with GPT-4o intent parsing',
       'Linguistic intent parsing (REMOVE/ADD/CHANGE)',
-      'SDXL inpainting with 3-5 second processing time'
-    ]
+      'Stability AI SDXL inpainting',
+      'Search-and-replace for maskless object removal',
+      'Negative prompt injection for REMOVE actions',
+      'Base64 image response',
+    ],
   })
 }

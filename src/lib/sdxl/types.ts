@@ -1,23 +1,27 @@
-// SDXL-specific type definitions
-
 export interface SDXLInpaintRequest {
-  image: string | File // Base64 or File
-  mask?: string | File // Base64 or File
+  image: string | File
+  mask?: string | File
   prompt: string
   negativePrompt?: string
-  strength?: number // 0.0 to 1.0
-  numInferenceSteps?: number
-  guidanceScale?: number
+  strength?: number
   seed?: number
+  outputFormat?: 'png' | 'jpeg' | 'webp'
 }
 
 export interface SDXLInpaintResponse {
-  url: string
+  base64: string
+  contentType: string
   seed?: number
-  timings?: {
-    inference: number
-    total: number
-  }
+  finishReason?: string
+}
+
+export interface SDXLSearchReplaceRequest {
+  image: string | File
+  prompt: string
+  searchPrompt: string
+  negativePrompt?: string
+  seed?: number
+  outputFormat?: 'png' | 'jpeg' | 'webp'
 }
 
 export interface SDXLClientConfig {

@@ -1,8 +1,7 @@
-// SDXL API client
-// This is a stub implementation that will be replaced with actual SDXL API integration
-
-import type { SDXLClientConfig, SDXLInpaintRequest, SDXLInpaintResponse } from './types'
+import type { SDXLClientConfig, SDXLInpaintRequest, SDXLInpaintResponse, SDXLSearchReplaceRequest } from './types'
 import { InpaintingError } from '@/types/errors'
+
+const STABILITY_API_BASE = 'https://api.stability.ai/v2beta/stable-image'
 
 export class SDXLClient {
   private config: SDXLClientConfig
@@ -12,58 +11,149 @@ export class SDXLClient {
   }
 
   async inpaint(request: SDXLInpaintRequest): Promise<SDXLInpaintResponse> {
-    // TODO: Replace with actual SDXL API implementation
-    // For now, this is a stub that simulates the API call
-    
-    console.log('SDXL inpainting request:', {
-      prompt: request.prompt,
-      strength: request.strength,
-      steps: request.numInferenceSteps
-    })
+    const formData = new FormData()
 
-    // Simulate API delay (3-5 seconds as mentioned in design)
-    await new Promise(resolve => setTimeout(resolve, 3000))
+    if (typeof request.image === 'string') {
+      const imageBuffer = Buffer.from(request.image, 'base64')
+      formData.append('image', new Blob([imageBuffer]), 'image.png')
+    } else {
+      formData.append('image', request.image)
+    }
 
-    // Mock response
-    return {
-      url: 'https://placeholder.com/generated-image.png',
-      seed: request.seed || Math.floor(Math.random() * 1000000),
-      timings: {
-        inference: 2800,
-        total: 3200
+    if (request.mask) {
+      if (typeof request.mask === 'string') {
+        const maskBuffer = Buffer.from(request.mask, 'base64')
+        formData.append('mask', new Blob([maskBuffer]), 'mask.png')
+      } else {
+        formData.append('mask', request.mask)
       }
+    }
+
+    formData.append('prompt', request.prompt)
+
+    if (request.negativePrompt) {
+      formData.append('negative_prompt', request.negativePrompt)
+    }
+    if (request.strength !== undefined) {
+      formData.append('strength', request.strength.toString())
+    }
+    if (request.seed !== undefined) {
+      formData.append('seed', request.seed.toString())
+    }
+    formData.append('output_format', request.outputFormat || 'png')
+
+    return this.request(`${STABILITY_API_BASE}/edit/inpaint`, formData)
+  }
+
+  async searchAndReplace(request: SDXLSearchReplaceRequest): Promise<SDXLInpaintResponse> {
+    const formData = new FormData()
+
+    if (typeof request.image === 'string') {
+      const imageBuffer = Buffer.from(request.image, 'base64')
+      formData.append('image', new Blob([imageBuffer]), 'image.png')
+    } else {
+      formData.append('image', request.image)
+    }
+
+    formData.append('prompt', request.prompt)
+    formData.append('search_prompt', request.searchPrompt)
+
+    if (request.negativePrompt) {
+      formData.append('negative_prompt', request.negativePrompt)
+    }
+    if (request.seed !== undefined) {
+      formData.append('seed', request.seed.toString())
+    }
+    formData.append('output_format', request.outputFormat || 'png')
+
+    return this.request(`${STABILITY_API_BASE}/edit/search-and-replace`, formData)
+  }
+
+  private async request(url: string, formData: FormData): Promise<SDXLInpaintResponse> {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), this.config.timeout || 60000)
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.config.apiKey}`,
+          'Accept': 'application/json',
+        },
+        body: formData,
+        signal: controller.signal,
+      })
+
+      if (!response.ok) {
+        const errorBody = await response.text()
+        let errorMessage: string
+        try {
+          const parsed = JSON.parse(errorBody)
+          errorMessage = parsed.message || parsed.errors?.[0] || errorBody
+        } catch {
+          errorMessage = errorBody
+        }
+        throw new InpaintingError(
+          `Stability AI API error (${response.status}): ${errorMessage}`,
+          'STABILITY_API_ERROR',
+          { statusCode: response.status }
+        )
+      }
+
+      const data = await response.json()
+
+      return {
+        base64: data.image,
+        contentType: `image/${data.output_format || 'png'}`,
+        seed: data.seed,
+        finishReason: data.finish_reason,
+      }
+    } catch (error) {
+      if (error instanceof InpaintingError) throw error
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new InpaintingError('Request timed out', 'TIMEOUT')
+      }
+      throw new InpaintingError(
+        error instanceof Error ? error.message : 'Stability AI request failed',
+        'NETWORK_ERROR'
+      )
+    } finally {
+      clearTimeout(timeout)
     }
   }
 
   async healthCheck(): Promise<boolean> {
-    // TODO: Implement actual health check
-    return true
+    try {
+      const response = await fetch('https://api.stability.ai/v1/user/account', {
+        headers: { 'Authorization': `Bearer ${this.config.apiKey}` },
+      })
+      return response.ok
+    } catch {
+      return false
+    }
   }
 }
 
-// Singleton instance
 let sdxlClient: SDXLClient | null = null
 
 export function getSDXLClient(): SDXLClient {
   if (!sdxlClient) {
-    const apiKey = process.env.SDXL_API_KEY || process.env.OPENAI_API_KEY
+    const apiKey = process.env.STABILITY_API_KEY
     if (!apiKey) {
       throw new InpaintingError(
-        'SDXL_API_KEY or OPENAI_API_KEY environment variable is required',
+        'STABILITY_API_KEY environment variable is required',
         'MISSING_API_KEY'
       )
     }
-    
+
     sdxlClient = new SDXLClient({
       apiKey,
-      endpoint: process.env.SDXL_ENDPOINT,
-      timeout: 30000 // 30 seconds
+      timeout: 60000,
     })
   }
   return sdxlClient
 }
 
-// Reset function for testing
 export function resetSDXLClient(): void {
   sdxlClient = null
 }
