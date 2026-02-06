@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 
 export function Navigation() {
-  const [isDark, setIsDark] = useState(true)
+  const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {
     // Apply theme to document
@@ -17,7 +17,7 @@ export function Navigation() {
   return (
     <nav className="h-18 flex items-center justify-between px-10 border-b border-[var(--glass-border)]">
       <div className="logo-container">
-        <div className="text-xl font-extrabold uppercase bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent">
+        <div className="logo">
           PromptGlot
         </div>
       </div>
@@ -37,7 +37,7 @@ export function Navigation() {
           <span className="toggle-label">Dark</span>
         </div>
         
-        <button className="px-4 py-2 rounded-lg hover:bg-white/5 transition-colors">
+        <button className="btn-pop px-4 py-2 rounded-lg bg-[hsl(var(--foreground)/0.05)] hover:bg-[hsl(var(--foreground)/0.1)] transition-colors">
           History
         </button>
         

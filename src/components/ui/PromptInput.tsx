@@ -30,7 +30,7 @@ export function PromptInput({
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           disabled={disabled}
-          className="bg-transparent border-none text-white flex-1 text-base outline-none placeholder:text-gray-400 disabled:opacity-50"
+          className="bg-transparent border-none text-[hsl(var(--foreground))] flex-1 text-base outline-none placeholder:text-[hsl(var(--foreground)/0.4)] disabled:opacity-50"
           placeholder={placeholder}
         />
         <button

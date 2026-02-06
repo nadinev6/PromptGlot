@@ -41,18 +41,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Navigation */}
-      <nav className="h-[72px] flex items-center justify-between px-10 border-b border-[var(--glass-border)]">
-        <div className="logo">PromptGLot</div>
+      <nav className="h-[72px] flex items-center justify-between px-10 border-b border-[hsl(var(--border))]">
+        <div className="logo">PromptGlot</div>
         <div className="flex gap-4">
-          <button className="px-4 py-2 rounded-lg hover:bg-white/5 transition-colors text-sm">History</button>
-          <button className="px-4 py-2 rounded-lg bg-[hsl(var(--primary))] text-white hover:opacity-90 transition-opacity text-sm font-semibold">Export</button>
+          <button className="btn-pop px-4 py-2 rounded-lg bg-[hsl(var(--foreground)/0.05)] hover:bg-[hsl(var(--foreground)/0.1)] transition-colors text-sm">History</button>
+          <button className="btn-pop px-4 py-2 rounded-lg bg-[hsl(var(--primary))] text-white hover:opacity-90 transition-opacity text-sm font-semibold">Export</button>
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="grid grid-cols-[1fr_320px] h-[calc(100vh-72px)] p-10 gap-10">
-        {/* Hero Canvas */}
         <section className="hero-canvas" id="mainCanvas">
           <img
             src={showOriginal ? imagePreview : (result || imagePreview)}
@@ -61,25 +58,23 @@ export default function Home() {
             id="displayImage"
           />
 
-          {/* Canvas Controls */}
           <div className="absolute top-6 right-6 flex gap-2 z-10">
             <button
               onClick={() => setShowOriginal(true)}
-              className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${showOriginal ? 'bg-white text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}
+              className={`btn-pop px-4 py-2 rounded-lg transition-all text-sm font-medium ${showOriginal ? 'bg-white text-black shadow-md' : 'bg-black/20 text-white hover:bg-black/30 backdrop-blur-sm'}`}
               id="btnOriginal"
             >
               Original
             </button>
             <button
               onClick={() => setShowOriginal(false)}
-              className={`px-4 py-2 rounded-lg transition-all text-sm font-medium ${!showOriginal ? 'bg-white text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}
+              className={`btn-pop px-4 py-2 rounded-lg transition-all text-sm font-medium ${!showOriginal ? 'bg-white text-black shadow-md' : 'bg-black/20 text-white hover:bg-black/30 backdrop-blur-sm'}`}
               id="btnEdited"
             >
               Edited
             </button>
           </div>
 
-          {/* Processing Overlay */}
           {loading && (
             <div className="processing-overlay" style={{ display: 'flex' }}>
               <div className="loader-candy"></div>
@@ -88,31 +83,26 @@ export default function Home() {
           )}
         </section>
 
-        {/* Sidebar */}
-        <aside className="space-y-6">
-          {/* Linguistic Analysis */}
-          <div className="sidebar-section">
+        <aside className="space-y-6 overflow-y-auto">
+          <div className="glass-surface rounded-2xl p-6">
             <h3 className="sidebar-title">Linguistic Analysis</h3>
-            <div className="glass-surface rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">🇿🇦</span>
-                <span className="text-xs bg-[hsl(var(--primary))] text-white px-3 py-1 rounded-full font-semibold">Afrikaans Detected</span>
-              </div>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">🇿🇦</span>
+              <span className="text-xs bg-[hsl(var(--primary))] text-white px-3 py-1 rounded-full font-semibold">Afrikaans Detected</span>
+            </div>
 
-              <div className="logic-card">
-                <h4>Logic Resolution</h4>
-                <p>Double Negative → <span className="text-[hsl(var(--accent))] font-bold">Object Removal</span></p>
-              </div>
+            <div className="logic-card">
+              <h4>Logic Resolution</h4>
+              <p>Double Negative → <span className="text-[hsl(var(--accent))] font-bold">Object Removal</span></p>
+            </div>
 
-              <div className="logic-card">
-                <h4>Contextual Focus</h4>
-                <p>Fruit bowl (Central)</p>
-              </div>
+            <div className="logic-card">
+              <h4>Contextual Focus</h4>
+              <p>Fruit bowl (Central)</p>
             </div>
           </div>
 
-          {/* Confidence Score */}
-          <div className="confidence-container">
+          <div className="glass-surface rounded-2xl p-6">
             <h3 className="sidebar-title">Confidence Score</h3>
             <div className="progress-wrapper">
               <svg className="radial-progress" viewBox="0 0 100 100">
@@ -123,8 +113,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Upload Button */}
-          <div>
+          <div className="glass-surface rounded-2xl p-6">
             <input
               type="file"
               accept="image/*"
@@ -134,7 +123,7 @@ export default function Home() {
             />
             <label
               htmlFor="fileInput"
-              className="block w-full px-4 py-3 text-center rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] cursor-pointer hover:opacity-90 transition-opacity font-semibold text-sm"
+              className="btn-pop block w-full px-4 py-3 text-center rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] cursor-pointer hover:opacity-90 transition-opacity font-semibold text-sm"
             >
               Upload Image
             </label>
@@ -142,7 +131,6 @@ export default function Home() {
         </aside>
       </main>
 
-      {/* Command Centre */}
       <div className="command-centre-wrapper">
         <form onSubmit={handleSubmit} className="command-bar glass-surface">
           <svg className="sparkle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

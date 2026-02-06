@@ -23,7 +23,7 @@ export function LinguisticAnalysis({ analysis, className = '' }: LinguisticAnaly
   return (
     <aside className={`lingo-sidebar ${className}`}>
       <div className="mb-6">
-        <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-4">
+        <h3 className="sidebar-title">
           Linguistic Analysis
         </h3>
         
@@ -35,11 +35,11 @@ export function LinguisticAnalysis({ analysis, className = '' }: LinguisticAnaly
           
           <div className="space-y-4">
             <div className="logic-step">
-              <span className="text-xs text-gray-400 uppercase">Syntax Detected</span>
+              <span className="text-xs text-[hsl(var(--foreground)/0.45)] uppercase">Syntax Detected</span>
               <p className="mt-1 font-mono text-sm">{data.pattern}</p>
             </div>
             <div className="logic-step">
-              <span className="text-xs text-gray-400 uppercase">Resolved Intent</span>
+              <span className="text-xs text-[hsl(var(--foreground)/0.45)] uppercase">Resolved Intent</span>
               <p className="mt-1 font-mono text-sm">{data.intent}</p>
             </div>
           </div>
@@ -58,7 +58,7 @@ export function LinguisticAnalysis({ analysis, className = '' }: LinguisticAnaly
 
       {data.confidence && (
         <div>
-          <h3 className="text-xs uppercase tracking-wider text-gray-500 mb-4">
+          <h3 className="sidebar-title">
             AI Confidence
           </h3>
           <div className="flex items-center justify-center">

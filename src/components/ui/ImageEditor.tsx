@@ -90,7 +90,7 @@ export function ImageEditor({ className = '' }: ImageEditorProps) {
 
       {/* Image Display */}
       {imagePreview && (
-        <div className="relative rounded-[32px] bg-[#111] overflow-hidden">
+        <div className="relative rounded-[32px] bg-[hsl(var(--card))] border border-[hsl(var(--border))] overflow-hidden">
           <img
             src={result || imagePreview}
             alt="Editor Canvas"
@@ -109,7 +109,7 @@ export function ImageEditor({ className = '' }: ImageEditorProps) {
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-200">
+        <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-700 dark:text-red-200">
           <p className="text-sm">{error}</p>
         </div>
       )}
@@ -117,15 +117,15 @@ export function ImageEditor({ className = '' }: ImageEditorProps) {
       {/* Translation Info */}
       {translationInfo && (
         <div className="glass-surface rounded-lg p-4 space-y-2">
-          <h4 className="text-xs uppercase tracking-wider text-gray-400">Translation</h4>
+          <h4 className="text-xs uppercase tracking-wider text-[hsl(var(--foreground)/0.45)]">Translation</h4>
           <div className="space-y-1 text-sm">
-            <p><span className="text-gray-400">Original:</span> {translationInfo.original}</p>
-            <p><span className="text-gray-400">English:</span> {translationInfo.translated}</p>
+            <p><span className="text-[hsl(var(--foreground)/0.45)]">Original:</span> {translationInfo.original}</p>
+            <p><span className="text-[hsl(var(--foreground)/0.45)]">English:</span> {translationInfo.translated}</p>
             {translationInfo.action && (
-              <p><span className="text-gray-400">Action:</span> {translationInfo.action}</p>
+              <p><span className="text-[hsl(var(--foreground)/0.45)]">Action:</span> {translationInfo.action}</p>
             )}
             {translationInfo.subject && (
-              <p><span className="text-gray-400">Subject:</span> {translationInfo.subject}</p>
+              <p><span className="text-[hsl(var(--foreground)/0.45)]">Subject:</span> {translationInfo.subject}</p>
             )}
           </div>
         </div>
