@@ -1,24 +1,55 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Sun, Moon } from 'lucide-react'
 import { inpaintImage, buildBase64DataUrl } from '@/lib/api/client'
+
+interface AnalysisData {
+  originalPrompt: string
+  action?: string
+  subject?: string
+  hasDoubleNegation?: boolean
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  REMOVE: 'Object Removal',
+  ADD: 'Object Addition',
+  CHANGE: 'Object Modification',
+}
 
 export default function Home() {
   const [image, setImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string>('https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&q=80&w=2000')
+  const [imagePreview, setImagePreview] = useState<string>(
+    'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&q=80&w=2000'
+  )
   const [result, setResult] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [showOriginal, setShowOriginal] = useState(false)
+  const [analysis, setAnalysis] = useState<AnalysisData | null>(null)
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    const stored = localStorage.getItem('promptglot-theme')
+    if (stored === 'dark') {
+      setIsDark(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark)
+    localStorage.setItem('promptglot-theme', isDark ? 'dark' : 'light')
+  }, [isDark])
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       setImage(file)
       const reader = new FileReader()
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string)
+      reader.onload = (ev) => {
+        setImagePreview(ev.target?.result as string)
         setResult(null)
+        setAnalysis(null)
       }
       reader.readAsDataURL(file)
     }
@@ -32,6 +63,12 @@ export default function Home() {
     try {
       const response = await inpaintImage(image, prompt, { language: 'af' })
       setResult(buildBase64DataUrl(response.imageBase64, response.contentType))
+      setAnalysis({
+        originalPrompt: response.originalPrompt || prompt,
+        action: response.metadata?.action,
+        subject: response.metadata?.subject,
+        hasDoubleNegation: response.metadata?.hasDoubleNegation,
+      })
     } catch (error) {
       console.error('Inpainting failed:', error)
     } finally {
@@ -41,39 +78,57 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <nav className="h-[72px] flex items-center justify-between px-10 border-b border-[hsl(var(--border))]">
+      <nav className="h-[72px] flex items-center justify-between px-4 md:px-10 border-b border-[hsl(var(--border))]">
         <div className="logo">PromptGlot</div>
-        <div className="flex gap-4">
-          <button className="btn-pop px-4 py-2 rounded-lg bg-[hsl(var(--foreground)/0.05)] hover:bg-[hsl(var(--foreground)/0.1)] transition-colors text-sm">History</button>
-          <button className="btn-pop px-4 py-2 rounded-lg bg-[hsl(var(--primary))] text-white hover:opacity-90 transition-opacity text-sm font-semibold">Export</button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsDark(!isDark)}
+            className="p-2 rounded-lg bg-[hsl(var(--foreground)/0.05)] hover:bg-[hsl(var(--foreground)/0.1)] transition-colors"
+            aria-label="Toggle theme"
+          >
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          <button className="btn-pop px-4 py-2 rounded-lg bg-[hsl(var(--foreground)/0.05)] hover:bg-[hsl(var(--foreground)/0.1)] transition-colors text-sm">
+            History
+          </button>
+          <button className="btn-pop px-4 py-2 rounded-lg bg-[hsl(var(--primary))] text-white hover:opacity-90 transition-opacity text-sm font-semibold">
+            Export
+          </button>
         </div>
       </nav>
 
-      <main className="grid grid-cols-[1fr_320px] h-[calc(100vh-72px)] p-10 gap-10">
-        <section className="hero-canvas" id="mainCanvas">
+      <main className="grid grid-cols-1 md:grid-cols-[1fr_320px] md:h-[calc(100vh-72px)] p-4 pb-32 md:p-10 md:pb-10 gap-6 md:gap-10">
+        <section className="hero-canvas min-h-[300px] md:min-h-0" id="mainCanvas">
           <img
             src={showOriginal ? imagePreview : (result || imagePreview)}
-            alt="Kitchen Scene"
+            alt="Editor canvas"
             className="image-placeholder"
-            id="displayImage"
           />
 
-          <div className="absolute top-6 right-6 flex gap-2 z-10">
-            <button
-              onClick={() => setShowOriginal(true)}
-              className={`btn-pop px-4 py-2 rounded-lg transition-all text-sm font-medium ${showOriginal ? 'bg-white text-black shadow-md' : 'bg-black/20 text-white hover:bg-black/30 backdrop-blur-sm'}`}
-              id="btnOriginal"
-            >
-              Original
-            </button>
-            <button
-              onClick={() => setShowOriginal(false)}
-              className={`btn-pop px-4 py-2 rounded-lg transition-all text-sm font-medium ${!showOriginal ? 'bg-white text-black shadow-md' : 'bg-black/20 text-white hover:bg-black/30 backdrop-blur-sm'}`}
-              id="btnEdited"
-            >
-              Edited
-            </button>
-          </div>
+          {result && (
+            <div className="absolute top-6 right-6 flex gap-2 z-10">
+              <button
+                onClick={() => setShowOriginal(true)}
+                className={`btn-pop px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+                  showOriginal
+                    ? 'bg-white text-black shadow-md'
+                    : 'bg-black/20 text-white hover:bg-black/30 backdrop-blur-sm'
+                }`}
+              >
+                Original
+              </button>
+              <button
+                onClick={() => setShowOriginal(false)}
+                className={`btn-pop px-4 py-2 rounded-lg transition-all text-sm font-medium ${
+                  !showOriginal
+                    ? 'bg-white text-black shadow-md'
+                    : 'bg-black/20 text-white hover:bg-black/30 backdrop-blur-sm'
+                }`}
+              >
+                Edited
+              </button>
+            </div>
+          )}
 
           {loading && (
             <div className="processing-overlay" style={{ display: 'flex' }}>
@@ -84,34 +139,53 @@ export default function Home() {
         </section>
 
         <aside className="space-y-6 overflow-y-auto">
-          <div className="glass-surface rounded-2xl p-6">
-            <h3 className="sidebar-title">Linguistic Analysis</h3>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">🇿🇦</span>
-              <span className="text-xs bg-[hsl(var(--primary))] text-white px-3 py-1 rounded-full font-semibold">Afrikaans Detected</span>
-            </div>
+          {analysis ? (
+            <>
+              <div className="glass-surface rounded-2xl p-6">
+                <h3 className="sidebar-title">Linguistic Analysis</h3>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">{'\u{1F1FF}\u{1F1E6}'}</span>
+                  <span className="text-xs bg-[hsl(var(--primary))] text-white px-3 py-1 rounded-full font-semibold">
+                    Afrikaans Detected
+                  </span>
+                </div>
 
-            <div className="logic-card">
-              <h4>Logic Resolution</h4>
-              <p>Double Negative → <span className="text-[hsl(var(--accent))] font-bold">Object Removal</span></p>
-            </div>
+                {analysis.action && (
+                  <div className="logic-card">
+                    <h4>Logic Resolution</h4>
+                    <p>
+                      {analysis.hasDoubleNegation && (
+                        <span>Double Negative {'\u2192'} </span>
+                      )}
+                      <span className="text-[hsl(var(--accent))] font-bold">
+                        {ACTION_LABELS[analysis.action] || analysis.action}
+                      </span>
+                    </p>
+                  </div>
+                )}
 
-            <div className="logic-card">
-              <h4>Contextual Focus</h4>
-              <p>Fruit bowl (Central)</p>
-            </div>
-          </div>
+                {analysis.subject && (
+                  <div className="logic-card">
+                    <h4>Contextual Focus</h4>
+                    <p>{analysis.subject}</p>
+                  </div>
+                )}
+              </div>
 
-          <div className="glass-surface rounded-2xl p-6">
-            <h3 className="sidebar-title">Confidence Score</h3>
-            <div className="progress-wrapper">
-              <svg className="radial-progress" viewBox="0 0 100 100">
-                <circle className="radial-bg" cx="50" cy="50" r="40"></circle>
-                <circle className="radial-fill" cx="50" cy="50" r="40" style={{ strokeDashoffset: 25 }}></circle>
-              </svg>
-              <div className="confidence-label">94%</div>
+              <div className="glass-surface rounded-2xl p-6">
+                <h3 className="sidebar-title">Your Prompt</h3>
+                <p className="text-sm leading-relaxed italic">
+                  &ldquo;{analysis.originalPrompt}&rdquo;
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="glass-surface rounded-2xl p-6">
+              <p className="text-sm text-[hsl(var(--foreground)/0.4)] text-center">
+                Submit a prompt to see analysis
+              </p>
             </div>
-          </div>
+          )}
 
           <div className="glass-surface rounded-2xl p-6">
             <input
@@ -125,7 +199,7 @@ export default function Home() {
               htmlFor="fileInput"
               className="btn-pop block w-full px-4 py-3 text-center rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] cursor-pointer hover:opacity-90 transition-opacity font-semibold text-sm"
             >
-              Upload Image
+              {image ? 'Change Image' : 'Upload Image'}
             </label>
           </div>
         </aside>
@@ -144,7 +218,7 @@ export default function Home() {
             placeholder="Verwyder die vrugte op die tafel..."
             id="promptInput"
           />
-          <kbd className="shortcut-hint">⌘ + ↵</kbd>
+          <kbd className="shortcut-hint">{'\u2318'} + {'\u21B5'}</kbd>
         </form>
       </div>
     </div>
