@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
-import { Sun, Moon, Upload } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Sun, Moon, Upload, X } from 'lucide-react'
 import { inpaintImage, buildBase64DataUrl } from '@/lib/api/client'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface AnalysisData {
   originalPrompt: string
@@ -9,11 +10,19 @@ interface AnalysisData {
   hasDoubleNegation?: boolean
 }
 
+interface Toast {
+  id: number
+  message: string
+  type: 'error' | 'info'
+}
+
 const ACTION_LABELS: Record<string, string> = {
   REMOVE: 'Object Removal',
   ADD: 'Object Addition',
   CHANGE: 'Object Modification',
 }
+
+let toastIdCounter = 0
 
 export default function App() {
   const [image, setImage] = useState<File | null>(null)
@@ -26,6 +35,20 @@ export default function App() {
   const [showOriginal, setShowOriginal] = useState(false)
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null)
   const [isDark, setIsDark] = useState(false)
+  const [toasts, setToasts] = useState<Toast[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const showToast = useCallback((message: string, type: 'error' | 'info' = 'error') => {
+    const id = ++toastIdCounter
+    setToasts(prev => [...prev, { id, message, type }])
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id))
+    }, 4000)
+  }, [])
+
+  const dismissToast = useCallback((id: number) => {
+    setToasts(prev => prev.filter(t => t.id !== id))
+  }, [])
 
   useEffect(() => {
     const stored = localStorage.getItem('promptglot-theme')
@@ -55,7 +78,13 @@ export default function App() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!image || !prompt.trim()) return
+    if (!prompt.trim()) return
+
+    if (!image) {
+      fileInputRef.current?.click()
+      showToast('Please upload an image first', 'info')
+      return
+    }
 
     setLoading(true)
     try {
@@ -68,7 +97,8 @@ export default function App() {
         hasDoubleNegation: response.metadata?.hasDoubleNegation,
       })
     } catch (error) {
-      console.error('Inpainting failed:', error)
+      const message = error instanceof Error ? error.message : 'Something went wrong'
+      showToast(message)
     } finally {
       setLoading(false)
     }
@@ -80,6 +110,7 @@ export default function App() {
         <div className="logo">PromptGlot</div>
         <div className="flex items-center gap-3">
           <input
+            ref={fileInputRef}
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
@@ -202,7 +233,7 @@ export default function App() {
       </main>
 
       <div className="command-centre-wrapper">
-        <form onSubmit={handleSubmit} className="command-bar glass-surface">
+        <form onSubmit={handleSubmit} className="command-bar">
           <svg className="sparkle-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/>
           </svg>
@@ -217,6 +248,24 @@ export default function App() {
           <kbd className="shortcut-hint">{'\u2318'} + {'\u21B5'}</kbd>
         </form>
       </div>
+
+      <AnimatePresence>
+        {toasts.map(toast => (
+          <motion.div
+            key={toast.id}
+            initial={{ opacity: 0, y: 40, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 20, x: '-50%' }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className={`toast-notification ${toast.type === 'info' ? 'toast-info' : 'toast-error'}`}
+          >
+            <span className="text-sm font-medium">{toast.message}</span>
+            <button onClick={() => dismissToast(toast.id)} className="toast-dismiss">
+              <X size={14} />
+            </button>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   )
 }
