@@ -2,20 +2,21 @@
   "name": "prompt-glot",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "pull:locales": "echo 'Run lingo.dev CLI manually: lingo pull' && echo 'Or use the Lingo.dev web dashboard to export translations'"
+    "dev": "tsx server.ts",
+    "build": "vite build",
+    "preview": "NODE_ENV=production tsx server.ts",
+    "lint": "eslint"
   },
   "dependencies": {
+    "express": "^4.21.0",
     "framer-motion": "^11.0.3",
     "i18next": "^25.8.0",
     "i18next-resources-to-backend": "^1.2.1",
     "lingo.dev": "^0.131.1",
     "lucide-react": "^0.408.0",
-    "next": "16.1.6",
+    "multer": "^1.4.5-lts.1",
     "openai": "^6.17.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -23,13 +24,16 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/express": "^5",
+    "@types/multer": "^1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "babel-plugin-react-compiler": "1.0.0",
+    "@vitejs/plugin-react": "^4",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4",
+    "typescript": "^5",
+    "vite": "^6"
   }
 }

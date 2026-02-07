@@ -1,5 +1,5 @@
 import type { SDXLClientConfig, SDXLInpaintRequest, SDXLInpaintResponse, SDXLSearchReplaceRequest } from './types'
-import { InpaintingError } from '@/types/errors'
+import { InpaintingError } from '../../types/errors'
 
 const STABILITY_API_BASE = 'https://api.stability.ai/v2beta/stable-image'
 

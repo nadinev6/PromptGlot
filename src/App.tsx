@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useEffect } from 'react'
 import { Sun, Moon, Upload } from 'lucide-react'
 import { inpaintImage, buildBase64DataUrl } from '@/lib/api/client'
@@ -17,7 +15,7 @@ const ACTION_LABELS: Record<string, string> = {
   CHANGE: 'Object Modification',
 }
 
-export default function Home() {
+export default function App() {
   const [image, setImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string>(
     'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&q=80&w=2000'

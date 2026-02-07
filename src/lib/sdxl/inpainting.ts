@@ -1,6 +1,6 @@
 import { getSDXLClient } from './client'
-import type { InpaintRequest, InpaintResponse } from '@/types/image'
-import { InpaintingError } from '@/types/errors'
+import type { InpaintRequest, InpaintResponse } from '../../types/image'
+import { InpaintingError } from '../../types/errors'
 
 async function fileToBase64(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer()

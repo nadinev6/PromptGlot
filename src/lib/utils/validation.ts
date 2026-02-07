@@ -1,6 +1,6 @@
 // Validation utilities
 
-import { ConfigurationError } from '@/types/errors'
+import { ConfigurationError } from '../../types/errors'
 
 /**
  * Validates that required environment variables are set

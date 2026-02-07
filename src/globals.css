@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --color-background: oklch(var(--background));
   --color-foreground: oklch(var(--foreground));
   --color-card: oklch(var(--card));
@@ -308,7 +308,7 @@ body {
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 0.7rem;
-  font-family: var(--font-jetbrains-mono), monospace;
+  font-family: var(--font-mono);
   flex-shrink: 0;
   color: oklch(var(--foreground) / 0.5);
 }
