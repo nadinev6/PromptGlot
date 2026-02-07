@@ -35,11 +35,11 @@ export function LinguisticAnalysis({ analysis, className = '' }: LinguisticAnaly
           
           <div className="space-y-4">
             <div className="logic-step">
-              <span className="text-xs text-[hsl(var(--foreground)/0.45)] uppercase">Syntax Detected</span>
+              <span className="text-xs text-foreground-45 uppercase">Syntax Detected</span>
               <p className="mt-1 font-mono text-sm">{data.pattern}</p>
             </div>
             <div className="logic-step">
-              <span className="text-xs text-[hsl(var(--foreground)/0.45)] uppercase">Resolved Intent</span>
+              <span className="text-xs text-foreground-45 uppercase">Resolved Intent</span>
               <p className="mt-1 font-mono text-sm">{data.intent}</p>
             </div>
           </div>

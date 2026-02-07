@@ -30,13 +30,13 @@ export function PromptInput({
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           disabled={disabled}
-          className="bg-transparent border-none text-[hsl(var(--foreground))] flex-1 text-base outline-none placeholder:text-[hsl(var(--foreground)/0.4)] disabled:opacity-50"
+          className="bg-transparent border-none text-foreground flex-1 text-base outline-none placeholder:text-foreground-40 disabled:opacity-50"
           placeholder={placeholder}
         />
         <button
           type="submit"
           disabled={disabled || !prompt.trim()}
-          className="btn-pop bg-[hsl(var(--primary))] text-white p-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-pop bg-primary text-white p-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg 
             width="18" 

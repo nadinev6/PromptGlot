@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, Upload } from 'lucide-react'
 import { inpaintImage, buildBase64DataUrl } from '@/lib/api/client'
 
 interface AnalysisData {
@@ -78,21 +78,35 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <nav className="h-[72px] flex items-center justify-between px-4 md:px-10 border-b border-[hsl(var(--border))]">
+      <nav className="h-[72px] flex items-center justify-between px-4 md:px-10 border-b border-border">
         <div className="logo">PromptGlot</div>
         <div className="flex items-center gap-3">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+            id="fileInput"
+          />
+          <label
+            htmlFor="fileInput"
+            className="btn-pop flex items-center gap-2 px-4 py-2 rounded-lg bg-foreground-5 hover:bg-foreground-10 transition-colors text-sm cursor-pointer"
+          >
+            <Upload size={16} />
+            {image ? 'Change' : 'Upload'}
+          </label>
+          <button className="btn-pop px-4 py-2 rounded-lg bg-foreground-5 hover:bg-foreground-10 transition-colors text-sm">
+            History
+          </button>
+          <button className="btn-pop px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 transition-opacity text-sm font-semibold">
+            Export
+          </button>
           <button
             onClick={() => setIsDark(!isDark)}
-            className="p-2 rounded-lg bg-[hsl(var(--foreground)/0.05)] hover:bg-[hsl(var(--foreground)/0.1)] transition-colors"
+            className="p-2 rounded-lg bg-foreground-5 hover:bg-foreground-10 transition-colors"
             aria-label="Toggle theme"
           >
             {isDark ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-          <button className="btn-pop px-4 py-2 rounded-lg bg-[hsl(var(--foreground)/0.05)] hover:bg-[hsl(var(--foreground)/0.1)] transition-colors text-sm">
-            History
-          </button>
-          <button className="btn-pop px-4 py-2 rounded-lg bg-[hsl(var(--primary))] text-white hover:opacity-90 transition-opacity text-sm font-semibold">
-            Export
           </button>
         </div>
       </nav>
@@ -145,7 +159,7 @@ export default function Home() {
                 <h3 className="sidebar-title">Linguistic Analysis</h3>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-2xl">{'\u{1F1FF}\u{1F1E6}'}</span>
-                  <span className="text-xs bg-[hsl(var(--primary))] text-white px-3 py-1 rounded-full font-semibold">
+                  <span className="text-xs bg-primary text-white px-3 py-1 rounded-full font-semibold">
                     Afrikaans Detected
                   </span>
                 </div>
@@ -157,7 +171,7 @@ export default function Home() {
                       {analysis.hasDoubleNegation && (
                         <span>Double Negative {'\u2192'} </span>
                       )}
-                      <span className="text-[hsl(var(--accent))] font-bold">
+                      <span className="text-accent font-bold">
                         {ACTION_LABELS[analysis.action] || analysis.action}
                       </span>
                     </p>
@@ -181,27 +195,11 @@ export default function Home() {
             </>
           ) : (
             <div className="glass-surface rounded-2xl p-6">
-              <p className="text-sm text-[hsl(var(--foreground)/0.4)] text-center">
+              <p className="text-sm text-foreground-40 text-center">
                 Submit a prompt to see analysis
               </p>
             </div>
           )}
-
-          <div className="glass-surface rounded-2xl p-6">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-              id="fileInput"
-            />
-            <label
-              htmlFor="fileInput"
-              className="btn-pop block w-full px-4 py-3 text-center rounded-lg bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] cursor-pointer hover:opacity-90 transition-opacity font-semibold text-sm"
-            >
-              {image ? 'Change Image' : 'Upload Image'}
-            </label>
-          </div>
         </aside>
       </main>
 

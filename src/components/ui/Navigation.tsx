@@ -37,11 +37,11 @@ export function Navigation() {
           <span className="toggle-label">Dark</span>
         </div>
         
-        <button className="btn-pop px-4 py-2 rounded-lg bg-[hsl(var(--foreground)/0.05)] hover:bg-[hsl(var(--foreground)/0.1)] transition-colors">
+        <button className="btn-pop px-4 py-2 rounded-lg bg-foreground-5 hover:bg-foreground-10 transition-colors">
           History
         </button>
         
-        <button className="px-4 py-2 rounded-lg btn-pop bg-[hsl(var(--primary))] text-white">
+        <button className="px-4 py-2 rounded-lg btn-pop bg-primary text-white">
           Export
         </button>
       </div>
