@@ -158,7 +158,7 @@ body {
 }
 
 .command-input::placeholder {
-  color: oklch(var(--foreground) / 0.4);
+  color: oklch(1 0 0 / 0.4);
 }
 
 @utility btn-pop {
@@ -412,7 +412,7 @@ body {
 @utility command-input {
   background: transparent;
   border: none;
-  color: oklch(var(--foreground));
+  color: white;
   flex: 1;
   font-size: 1rem;
   outline: none;
